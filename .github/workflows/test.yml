@@ -12,14 +12,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Debug - Show current directory
-      shell: powershell
-      run: |
-        echo "Current directory:"
-        pwd
-        echo "Directory listing:"
-        dir
-    
     - name: Install OpenBLAS
       shell: powershell
       run: |
@@ -27,23 +19,16 @@ jobs:
         Expand-Archive -Path "openblas.zip" -DestinationPath "openblas_install"
         echo "openblas_install\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
     
-    - name: Debug - Check OpenBLAS installation
-      shell: powershell
-      run: |
-        echo "openblas_install directory:"
-        dir openblas_install
-        echo "openblas_install\include:"
-        dir openblas_install\include
-        echo "openblas_install\lib:"
-        dir openblas_install\lib
-    
     - name: Build SYRK
       working-directory: .\lab9\syrk
       run: make
     
     - name: Run SYRK tests
       working-directory: .\lab9\syrk
-      run: make run_test
+      shell: cmd
+      run: |
+        set PATH=%GITHUB_WORKSPACE%\openblas_install\bin;%PATH%
+        make run_test
     
     - name: Build BLAS Level 2 tests
       working-directory: .\lab9\blas_level2
@@ -51,4 +36,7 @@ jobs:
     
     - name: Run BLAS Level 2 tests
       working-directory: .\lab9\blas_level2
-      run: make run
+      shell: cmd
+      run: |
+        set PATH=%GITHUB_WORKSPACE%\openblas_install\bin;%PATH%
+        make run
