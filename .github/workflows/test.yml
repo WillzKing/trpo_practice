@@ -20,17 +20,17 @@ jobs:
         echo "..\openblas_install\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
     
     - name: Build SYRK
-      working-directory: .\syrk
+      working-directory: .\lab10\syrk
       run: make
     
     - name: Run SYRK tests
-      working-directory: .\syrk
+      working-directory: .\lab10\syrk
       run: make run_test
     
     - name: Build BLAS Level 2 tests
-      working-directory: .\blas_level2
+      working-directory: .\lab10\blas_level2
       run: make
     
     - name: Run BLAS Level 2 tests
-      working-directory: .\blas_level2
+      working-directory: .\lab10\blas_level2
       run: make run
