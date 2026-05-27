@@ -12,13 +12,30 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Install OpenBLAS (in repository root)
+    - name: Debug - Show current directory
+      shell: powershell
+      run: |
+        echo "Current directory:"
+        pwd
+        echo "Directory listing:"
+        dir
+    
+    - name: Install OpenBLAS
       shell: powershell
       run: |
         Invoke-WebRequest -Uri "https://github.com/OpenMathLib/OpenBLAS/releases/download/v0.3.25/OpenBLAS-0.3.25-x64.zip" -OutFile "openblas.zip"
         Expand-Archive -Path "openblas.zip" -DestinationPath "openblas_install"
         echo "openblas_install\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
-      working-directory: .\lab9
+    
+    - name: Debug - Check OpenBLAS installation
+      shell: powershell
+      run: |
+        echo "openblas_install directory:"
+        dir openblas_install
+        echo "openblas_install\include:"
+        dir openblas_install\include
+        echo "openblas_install\lib:"
+        dir openblas_install\lib
     
     - name: Build SYRK
       working-directory: .\lab9\syrk
