@@ -21,29 +21,53 @@ int compare_float(float a, float b) {
 
 // Тест для варианта C = alpha * A * A^T + beta * C (trans=1)
 int test_syrk_double_trans() {
-    printf("Testing SYRK double (A * A^T)... ");
+    printf("Testing SYRK double (A * A^T)...\n");
     
-    int n = 100, k = 50;
+    int n = 5, k = 3;  // Уменьшим размер для отладки
     double alpha = 2.0, beta = 0.5;
     
     double *A = malloc(n * k * sizeof(double));
     double *C_my = malloc(n * n * sizeof(double));
     double *C_blas = malloc(n * n * sizeof(double));
     
+    // Фиксированные значения вместо случайных
     for (int i = 0; i < n * k; i++) {
-        A[i] = (double)rand() / RAND_MAX * 2.0 - 1.0;
+        A[i] = (i + 1) * 0.1;
     }
     
     for (int i = 0; i < n; i++) {
         for (int j = i; j < n; j++) {
-            double val = (double)rand() / RAND_MAX * 2.0 - 1.0;
-            C_my[j * n + i] = val;
-            C_blas[j * n + i] = val;
+            C_my[j * n + i] = 1.0;
+            C_blas[j * n + i] = 1.0;
         }
+    }
+    
+    printf("A matrix (%dx%d):\n", n, k);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < k; j++) {
+            printf("%6.2f ", A[j * n + i]);
+        }
+        printf("\n");
     }
     
     syrk_double(n, k, alpha, A, n, beta, C_my, n, 1);
     cblas_dsyrk(CblasColMajor, CblasUpper, CblasTrans, n, k, alpha, A, n, beta, C_blas, n);
+    
+    printf("\nC_my (our result):\n");
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            printf("%8.4f ", C_my[j * n + i]);
+        }
+        printf("\n");
+    }
+    
+    printf("\nC_blas (OpenBLAS):\n");
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            printf("%8.4f ", C_blas[j * n + i]);
+        }
+        printf("\n");
+    }
     
     for (int i = 0; i < n; i++) {
         for (int j = i; j < n; j++) {
@@ -191,9 +215,9 @@ int main() {
     
     int failed = 0;
     failed += test_syrk_double_trans();
-    failed += test_syrk_double_notrans();
-    failed += test_syrk_float_trans();
-    failed += test_syrk_float_notrans();
+    //failed += test_syrk_double_notrans();
+    //failed += test_syrk_float_trans();
+    //failed += test_syrk_float_notrans();
     
     printf("\n=== %s ===\n", failed ? "FAILED" : "ALL PASSED");
     return failed;

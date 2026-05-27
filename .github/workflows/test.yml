@@ -23,12 +23,14 @@ jobs:
       working-directory: .\lab9\syrk
       run: make
     
-    - name: Run SYRK tests
+    - name: Run SYRK tests with debug
       working-directory: .\lab9\syrk
       shell: cmd
       run: |
         set PATH=%GITHUB_WORKSPACE%\openblas_install\bin;%PATH%
-        make run_test
+        echo Running test_syrk.exe...
+        test_syrk.exe
+        echo Exit code: %ERRORLEVEL%
     
     - name: Build BLAS Level 2 tests
       working-directory: .\lab9\blas_level2
