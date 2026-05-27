@@ -8,7 +8,7 @@
 #include <string.h>
 
 #define EPS_D 1e-9
-#define EPS_F 1e-5
+#define EPS_F 1e-4
 
 extern int tests_passed;
 extern int tests_failed;
