@@ -14,7 +14,7 @@ void syrk_double(int n, int k, double alpha, double *A, int lda,
     
     if (trans) {
         // C = alpha * A * A^T + C
-        // A размером N x K
+        // A размером N x K, lda = N
         for (int i = 0; i < n; i++) {
             for (int j = i; j < n; j++) {
                 double sum = 0.0;
@@ -26,7 +26,7 @@ void syrk_double(int n, int k, double alpha, double *A, int lda,
         }
     } else {
         // C = alpha * A^T * A + C
-        // A размером K x N
+        // A размером K x N, lda = K
         for (int i = 0; i < n; i++) {
             for (int j = i; j < n; j++) {
                 double sum = 0.0;
