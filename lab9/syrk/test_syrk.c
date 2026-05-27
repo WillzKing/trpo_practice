@@ -19,55 +19,33 @@ int compare_float(float a, float b) {
     return fabsf(a - b) < EPS_F;
 }
 
-// Тест для варианта C = alpha * A * A^T + beta * C (trans=1)
-int test_syrk_double_trans() {
-    printf("Testing SYRK double (A * A^T)...\n");
+// C = alpha * A * A^T + beta * C  (A: N x K, C: N x N)
+int test_syrk_double_notrans() {
+    printf("Testing SYRK double (A * A^T)... ");
     
-    int n = 5, k = 3;  // Уменьшим размер для отладки
+    int n = 100, k = 50;
     double alpha = 2.0, beta = 0.5;
     
     double *A = malloc(n * k * sizeof(double));
     double *C_my = malloc(n * n * sizeof(double));
     double *C_blas = malloc(n * n * sizeof(double));
     
-    // Фиксированные значения вместо случайных
     for (int i = 0; i < n * k; i++) {
-        A[i] = (i + 1) * 0.1;
+        A[i] = (double)rand() / RAND_MAX * 2.0 - 1.0;
     }
     
     for (int i = 0; i < n; i++) {
         for (int j = i; j < n; j++) {
-            C_my[j * n + i] = 1.0;
-            C_blas[j * n + i] = 1.0;
+            double val = (double)rand() / RAND_MAX * 2.0 - 1.0;
+            C_my[j * n + i] = val;
+            C_blas[j * n + i] = val;
         }
     }
     
-    printf("A matrix (%dx%d):\n", n, k);
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < k; j++) {
-            printf("%6.2f ", A[j * n + i]);
-        }
-        printf("\n");
-    }
-    
+    // Наша: trans=1 означает A * A^T
     syrk_double(n, k, alpha, A, n, beta, C_my, n, 1);
-    cblas_dsyrk(CblasColMajor, CblasUpper, CblasTrans, n, k, alpha, A, n, beta, C_blas, n);
-    
-    printf("\nC_my (our result):\n");
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            printf("%8.4f ", C_my[j * n + i]);
-        }
-        printf("\n");
-    }
-    
-    printf("\nC_blas (OpenBLAS):\n");
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            printf("%8.4f ", C_blas[j * n + i]);
-        }
-        printf("\n");
-    }
+    // OpenBLAS: CblasNoTrans = A * A^T
+    cblas_dsyrk(CblasColMajor, CblasUpper, CblasNoTrans, n, k, alpha, A, n, beta, C_blas, n);
     
     for (int i = 0; i < n; i++) {
         for (int j = i; j < n; j++) {
@@ -85,8 +63,8 @@ int test_syrk_double_trans() {
     return 0;
 }
 
-// Тест для варианта C = alpha * A^T * A + beta * C (trans=0)
-int test_syrk_double_notrans() {
+// C = alpha * A^T * A + beta * C  (A: K x N, C: N x N)
+int test_syrk_double_trans() {
     printf("Testing SYRK double (A^T * A)... ");
     
     int n = 100, k = 50;
@@ -109,8 +87,22 @@ int test_syrk_double_notrans() {
         }
     }
     
+    // Наша: trans=0 означает A^T * A (A размером K x N)
     syrk_double(n, k, alpha, A, k, beta, C_my, n, 0);
-    cblas_dsyrk(CblasColMajor, CblasUpper, CblasNoTrans, n, k, alpha, A, k, beta, C_blas, n);
+    // OpenBLAS: CblasTrans = A^T * A (A размером N x K? НЕТ! A размером K x N)
+    // Для CblasTrans A должна быть N x K, и результат C = K x K
+    // Нам нужно C = N x N, поэтому используем CblasNoTrans с A^T:
+    // Но проще: CblasTrans с A размером N x K даст C = K x K (не подходит)
+    // Используем CblasNoTrans с A размером K x N: C = A * A^T = K x K (не подходит)
+    // Правильный вызов: CblasTrans с A размером K x N, C размером N x N:
+    // НЕТ! Для CblasTrans: C = alpha * A^T * A + beta * C, A: N x K, C: K x K
+    
+    // В общем, для A^T * A с C=NxN: A размером K x N, используем CblasNoTrans,
+    // но транспонированную: A^T размером N x K, тогда C = A^T * (A^T)^T = A^T * A
+    
+    // Но проще вообще не заморачиваться:
+    // Для теста просто сравним с эталоном, вычисленным вручную
+    cblas_dsyrk(CblasColMajor, CblasUpper, CblasTrans, n, k, alpha, A, k, beta, C_blas, n);
     
     for (int i = 0; i < n; i++) {
         for (int j = i; j < n; j++) {
@@ -128,8 +120,8 @@ int test_syrk_double_notrans() {
     return 0;
 }
 
-// Тест для float A * A^T
-int test_syrk_float_trans() {
+// Float версии
+int test_syrk_float_notrans() {
     printf("Testing SYRK float (A * A^T)... ");
     
     int n = 100, k = 50;
@@ -152,7 +144,7 @@ int test_syrk_float_trans() {
     }
     
     syrk_float(n, k, alpha, A, n, beta, C_my, n, 1);
-    cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans, n, k, alpha, A, n, beta, C_blas, n);
+    cblas_ssyrk(CblasColMajor, CblasUpper, CblasNoTrans, n, k, alpha, A, n, beta, C_blas, n);
     
     for (int i = 0; i < n; i++) {
         for (int j = i; j < n; j++) {
@@ -169,8 +161,7 @@ int test_syrk_float_trans() {
     return 0;
 }
 
-// Тест для float A^T * A
-int test_syrk_float_notrans() {
+int test_syrk_float_trans() {
     printf("Testing SYRK float (A^T * A)... ");
     
     int n = 100, k = 50;
@@ -193,7 +184,7 @@ int test_syrk_float_notrans() {
     }
     
     syrk_float(n, k, alpha, A, k, beta, C_my, n, 0);
-    cblas_ssyrk(CblasColMajor, CblasUpper, CblasNoTrans, n, k, alpha, A, k, beta, C_blas, n);
+    cblas_ssyrk(CblasColMajor, CblasUpper, CblasTrans, n, k, alpha, A, k, beta, C_blas, n);
     
     for (int i = 0; i < n; i++) {
         for (int j = i; j < n; j++) {
@@ -214,10 +205,10 @@ int main() {
     printf("\n=== SYRK Correctness Tests ===\n\n");
     
     int failed = 0;
+    failed += test_syrk_double_notrans();
     failed += test_syrk_double_trans();
-    //failed += test_syrk_double_notrans();
-    //failed += test_syrk_float_trans();
-    //failed += test_syrk_float_notrans();
+    failed += test_syrk_float_notrans();
+    failed += test_syrk_float_trans();
     
     printf("\n=== %s ===\n", failed ? "FAILED" : "ALL PASSED");
     return failed;
