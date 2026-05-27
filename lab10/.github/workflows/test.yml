@@ -1,0 +1,36 @@
+name: BLAS Tests CI (Windows)
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install OpenBLAS (one level above lab10)
+      shell: powershell
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/OpenMathLib/OpenBLAS/releases/download/v0.3.25/OpenBLAS-0.3.25-x64.zip" -OutFile "openblas.zip"
+        Expand-Archive -Path "openblas.zip" -DestinationPath "..\openblas_install"
+        echo "..\openblas_install\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+    
+    - name: Build SYRK
+      working-directory: .\syrk
+      run: make
+    
+    - name: Run SYRK tests
+      working-directory: .\syrk
+      run: make run_test
+    
+    - name: Build BLAS Level 2 tests
+      working-directory: .\blas_level2
+      run: make
+    
+    - name: Run BLAS Level 2 tests
+      working-directory: .\blas_level2
+      run: make run
