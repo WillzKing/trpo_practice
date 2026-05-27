@@ -51,7 +51,7 @@ void benchmark_double(int n, int k, int num_threads, int num_runs) {
         
         // Запускаем нашу реализацию
         double t1 = get_time_sec();
-        syrk_double(n, k, alpha, A, n, beta, C_copy, n);
+        syrk_double(n, k, alpha, A, n, beta, C_copy, n, 1);
         double t2 = get_time_sec();
         times_my[run] = t2 - t1;
         
@@ -126,7 +126,7 @@ void benchmark_float(int n, int k, int num_threads, int num_runs) {
         for (int i = 0; i < n * n; i++) C_copy[i] = C_my[i];
         
         double t1 = get_time_sec();
-        syrk_float(n, k, alpha, A, n, beta, C_copy, n);
+        syrk_float(n, k, alpha, A, n, beta, C_copy, n, 1);
         double t2 = get_time_sec();
         times_my[run] = t2 - t1;
         
