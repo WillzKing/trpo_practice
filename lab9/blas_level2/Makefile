@@ -1,7 +1,6 @@
-# Компилятор и флаги
 CC = gcc
 CFLAGS = -Wall -Wextra -O2
-OPENBLAS_PATH = ../openblas_install
+OPENBLAS_PATH ?= ../../openblas_install
 CFLAGS += -I"$(OPENBLAS_PATH)/include"
 LDFLAGS = -L"$(OPENBLAS_PATH)/lib" -lopenblas -lm
 
